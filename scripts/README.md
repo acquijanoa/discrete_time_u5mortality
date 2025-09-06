@@ -14,6 +14,14 @@
 
 - Store in wide format for further processing.
 
+**Input Data**
+To run Job 01, download the DHS 2015 child recode file and place it in the root folder as follows:
+
+	LHS0001
+	|- data
+	|--- raw 
+	|---- cokr72fl
+
 #### Job 02: Multiple Imputation
 
 - Apply PROC MI to the LHS000101 dataset for handling missing data.
