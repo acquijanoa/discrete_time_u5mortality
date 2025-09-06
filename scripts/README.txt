@@ -1,23 +1,43 @@
-UNC Latin American Health Studies
-Author: Alvaro Quijano
-Date: 14may25
+# LatinAmerican Health Studies (LHS)
+# Author: AQ
+# Date: 14may25
 
-Project: LHS0001
-Aim: Under-five mortality determinants using discrete-time survival analysis in complex survey data
+# Project: LHS0001
 
+## Aim: Identify determinants of under-five mortality using discrete-time survival analysis with complex survey data.
 
-Job #:
+## Workflow Overview
 
-01: Derive the dataset based on DHS2015 child recode data in wide format
+###Job 01: Dataset Preparation
 
-02: PROC MI in LHS000101 dataset	
+Derive the working dataset from the DHS 2015 child recode data.
 
-03: Derive the log format dataset based on Job 03 with person-years
+Store in wide format for further processing.
 
-04: SAS modeling process (cloglog binomial model) and report
+### Job 02: Multiple Imputation
 
-05: Produce table for descriptive analysis
+Apply PROC MI to the LHS000101 dataset for handling missing data.
 
-90: SAS formats for the project
+### Job 03: Log-Format Dataset
 
-91: SAS macros to use in the project
+Reshape dataset into long format (person-years) for discrete-time survival analysis.
+
+### Job 04: Modeling
+
+Implement cloglog binomial model using SAS.
+
+Generate model results and structured reports.
+
+### Job 05: Descriptive Analysis
+
+Produce descriptive statistics tables for study variables.
+
+##Supporting Resources
+
+### Job 90: Formats
+
+Define and maintain SAS formats for project variables.
+
+### Job 91: SAS Macros
+
+Develop reusable SAS macros to streamline the analysis workflow.
