@@ -1,0 +1,343 @@
+NOTE: PROCEDURE PRINTTO used (Total process time):
+      real time           0.09 seconds
+      cpu time            0.01 seconds
+      
+
+6          
+7          /*
+8          	Program name: LHS000101.sas	
+9          
+10         	Description: Process children recode data and create a derv file
+11         					using data from 2015 to use in the analysis
+12         
+13         	Version: SAS 9.4
+14         
+15         	Input: COKR72FL (Child recode from DHS 2015)
+16         
+17         	Output: &homepath/data/derived/LHS000101
+18         
+19         */
+20         libname raw "&homepath/data/raw" access=readonly;
+NOTE: Libref RAW was successfully assigned as follows: 
+      Engine:        V9 
+      Physical Name: J:\HCHS\STATISTICS\GRAS\QAngarita\LHS\LHS0001\data\raw
+21         libname derv "&homepath/data/derived";
+NOTE: Libref DERV was successfully assigned as follows: 
+      Engine:        V9 
+      Physical Name: J:\HCHS\STATISTICS\GRAS\QAngarita\LHS\LHS0001\data\derived
+22         run;
+23         
+2                                                          The SAS System                              10:33 Sunday, August 24, 2025
+
+24         * define macro variables;
+25         %let db_out = derv.&job._&sysdate.;
+26         %let db_in = raw.cokr72fl;
+27         
+28         * processed dataset;
+29         data &db_out.(label = "DHS 2015 derived variables using child recode data on &sysdate.");
+30         	set &db_in.;
+31         	keep  strata psu weight doi time age_death age_month child_sex hhid status yob womenid birthid
+32         			mage_birth_c3 meduc_c3 ethnicity_c3 birth_weight time_months_c6 anc_quality urban bord v101
+33         			birth_weight_c3 preceding_birth_interval_c3 anc_quality_score anc_quality_score_c2
+34         			preterm_birth v190 b5 time_months birth_order_c3 birth_order_spacing_c5
+35         			any_substance_use wealth_index_c3 ;		
+36         
+37         		* design-related variables;
+38         		strata = v022;
+39         		label strata = 'Stratification variable';
+40         
+41         		psu = v001;
+42         		label psu = 'Cluster variable';
+43         
+44         		hhid = v002;
+45         		label hhid = 'Household id';
+46         
+47         		weight = v005 / 1000000;
+48         		label weight = 'Sampling weight';
+49         
+50         		womenid = caseid;
+51         		label womenid = 'Women id';
+52         
+53         		birthid = bidx;
+54         		label birthid = 'Case id in DHS';
+55         	
+56         		* region;
+57         		rename  v101 = region
+58         				BORD = birth_order
+59         				SMUNIP = municipality
+60         				ssubreg = subregion
+61         				sdepto = depto
+62         				v190 = wealth_index
+63         				b5 = is_alive;
+64         		
+65         		* urban;
+66         		if v025 = 1 then urban = 1;
+67         		else if v025 = 2 then urban = 0;
+68         		label urban = "Urban area of residence";
+69         	
+70         		* doi: date of interview;
+71         		doi = v008;
+72         		label doi = 'Date of interview';
+73         
+74         		* yoi: year of interview;
+75         		yoi = int(1900 + (v008-1)/12);
+76         		label yoi = 'Year of interview';
+77         		
+78         		* Child-related variables;
+79         		dob = b3;
+80         		label dob = "Date of birth";
+81         
+3                                                          The SAS System                              10:33 Sunday, August 24, 2025
+
+82         		age_death = b7;
+83         		label age_death = "Child's age at death in months";
+84         
+85         		age_month = doi - dob;
+86         		label age_month = "Child's age in months at interview";
+87         
+88         		yob = int(1900 + (dob - 1)/12);
+89         		label yob = "Child's year of birth";
+90         		
+91         		* child_sex;
+92         		if b4 = 2 then child_sex = 1;
+93         		else child_sex = 0;
+94         		label child_sex = "Sex of child (1=female, 0=male)";
+95         
+96         		* This is calculated even if the child has died or not;
+97         		time = min(b7, age_month) / 12;
+98         		label time = "Time to death or censoring (in years)";
+99         
+100        		time2 = min(b7, 59, age_month) / 12;
+101        		label time2 = "Time to death or censoring (max 59 months) in years";
+102        
+103        		* Time to death or censoring in months;
+104        		time_months = min(b7, age_month);
+105        		label time_months = "Time to death or censoring (in months)";
+106        
+107        		* Categorical time_months;
+108        		if time_months = 0 then time_months_c6 = 1;
+109        		else if 1 <= time_months < 5 then time_months_c6 = 2;
+110        		else if 5 <= time_months < 12 then time_months_c6 = 3;
+111        		else if 12 <= time_months < 24 then time_months_c6 = 4;
+112        		else if 24 <= time_months < 36 then time_months_c6 = 5;
+113        		else if 36 <= time_months < 60 then time_months_c6 = 6;
+114        		label time_months_c6 = "6-categories time to death or censoring in months";
+115        
+116        		* status variable;
+117        		status = 0;
+118        		if min(b7, age_month) >= 60 then status = 1;
+119        		else if age_month < 60 then status = 0;
+120        		label status = "Child survival status by age 60 months (1=survived, 0=died)";
+121        
+122        		* birth_order_c3;
+123        		if bord = 1 then birth_order_c3 = 1;
+124        		else if bord in (2,3) then birth_order_c3 = 2;
+125        		else if bord > 3 then birth_order_c3 = 3;
+126        		label birth_order_c3 = "birth order (3 categories)";
+127        
+128        		* preceding_birth_interval_c4;
+129        		if bord = 1 then preceding_birth_interval_c4 = 0;
+130        		else if 0 <= b11 < 24 then preceding_birth_interval_c4 = 1;
+131        		else if 24 <= b11 < 36 then preceding_birth_interval_c4 = 2;
+132        		else if b11 >= 36 then preceding_birth_interval_c4 = 3;
+133        		else preceding_birth_interval_c4 = .;
+134        		label preceding_birth_interval_c4 = '4-categories preceding birth interval';
+135        
+136        		* preceding_birth_interval_c3;
+137        		if preceding_birth_interval_c4 = 0 then preceding_birth_interval_c3 = 0;
+138        		else if preceding_birth_interval_c4 in (1,2) then preceding_birth_interval_c3 = 1;
+139        		else if preceding_birth_interval_c4 = 3 then preceding_birth_interval_c3 = 2;
+4                                                          The SAS System                              10:33 Sunday, August 24, 2025
+
+140        		else preceding_birth_interval_c3 = .;
+141        		label preceding_birth_interval_c3 = '3-categories preceding birth interval including firstborns';
+142        
+143        		* Preceding_birth_interval_lt36;
+144        		if preceding_birth_interval_c3 = 1 then preceding_birth_interval_lt36 = 1;
+145        		else preceding_birth_interval_lt36 = 0;
+146        
+147        		* birth_order_spacing_c5;
+148        		if bord = 1 then birth_order_spacing_c5 = 0;
+149        		else do;
+150        			if bord in (2,3) then do;
+151        				if 0 < b11 < 36 then birth_order_spacing_c5 = 1;
+152        				else if b11 >= 36 then birth_order_spacing_c5 = 2;
+153        			end;
+154        			else if bord > 3 then do;
+155        				if 0 < b11 < 36 then birth_order_spacing_c5 = 3;
+156        				else if b11 >= 36 then birth_order_spacing_c5 = 4;
+157        			end;
+158        		end;
+159        		label birth_order_spacing_c5 = "Birth order and spacing (5-categories)";
+160        		
+161        		* weight_at_birth;
+162        		if m19 in (9996, 9998) then birth_weight = .;
+163        	    else birth_weight = m19;
+164        		label birth_weight = 'Birth weight in grams';
+165        
+166        	    * 3-levels birth weight;
+167        	    if 0 < birth_weight < 2500 then birth_weight_c3 = 1;
+168        	    else if 2500 <= birth_weight < 4000 then birth_weight_c3 = 2;
+169        	    else if birth_weight >= 4000 then birth_weight_c3 = 3;
+170        	    else birth_weight = .;
+171            	label birth_weight_c3 = "Birth weight (3 categories)";
+172        
+173        		* preterm_birth;
+174        		if s445 = 1 then preterm_birth = 1;
+175        		else if s445 = 0 then preterm_birth = 0;
+176        		else preterm_birth = .;
+177        		label preterm_birth = "Child reported as born prematurely";
+178        
+179        		* mother's age at child birth;
+180        		mage_birth = round((B3 - V011) / 12, 1);
+181        		label mage_birth = "Mother's age at child's birth (in years)";
+182        
+183        		* mother's age at child birth;
+184        		if mage_birth = . then mage_birth_c3 = .;
+185        		else if mage_birth <=19 then mage_birth_c3 = 1;
+186        		else if mage_birth >19 and mage_birth < 35 then mage_birth_c3 = 2;
+187        		else if mage_birth >= 35 then mage_birth_c3 = 3;
+188        		label mage_birth_c3 = "Mother's age at child's birth (3 categories)";
+189        
+190        		if v106 = 0 then meduc_c3 = 1;
+191        		else if v106 = 1 then meduc_c3 = 2;
+192        		else if v106 in (2,3) then meduc_c3 = 3;
+193        		label meduc_c3 = "Mother's education (3 categories)";
+194        		
+195        		* Ethnicity variable
+196        			* 1 = "Indigenous";
+197             		* 2 = "Gypsy (ROM)";
+5                                                          The SAS System                              10:33 Sunday, August 24, 2025
+
+198             		* 3 = "Raizal from archipelago (San Andres)";
+199             		* 4 = "Palanquero from San Basilio";
+200             		* 5 = "Black/Mulato/Afro-Colombian/Afro-descendant";
+201             		* 6 = "None of the above
+202        		;
+203        		if v131 = 1 then ethnicity_c3 = 1;
+204        		else if v131 in (3,4,5) then ethnicity_c3 = 2;
+205        		else if v131 in (2,6) then ethnicity_c3 = 3;
+206        		else ehtnicity_v3 = .;
+207        		label ethnicity_c3 = 'Self-reported ethnicity (3 categories)';
+208        
+209        		* ANC quality score;
+210        		if missing(M42a) or  missing(M42c) or  missing(M42d) or  missing(M42e) then anc_quality = .;
+211        		else anc_quality = sum(of M42a M42c M42d M42e);
+212        		label anc_quality = "ANC quality score (0-4)";
+213        
+214        		* Any antenatal care;
+215        		if missing(m57e) or missing(m57m) or missing(m57n) or missing(m57o) or missing(m57p) or missing(m57x) then
+215      ! any_antenatal = .;
+216        		else any_antenatal = sum(of m57e m57m m57n m57o m57p m57x);
+217        		label any_antenatal = "Any antenatal care";
+218        
+219        		* Any substance use during pregnancy;
+220        		if missing(s428) and missing(s430) and (missing(s433a) or s433a =8) and (missing(s433b) or s433b =8) and
+221        				(missing(s433c) or s433c=8) and (missing(s433x) or s433x =8) then any_substance_use = .;
+222        		else if S428 = 1 or S430 = 1 or S433a = 1 or S433b = 1 or S433c = 1 or S433x = 1  then  any_substance_use = 1;
+223        		else any_substance_use = 0;
+224        		label any_substance_use = 'Any substance use during pregnancy';
+225        
+226        		* 3 categories wealth index;
+227        		if v190 in (1,2) then wealth_index_c3 = 1;
+228        		else if v190 = 3 then wealth_index_c3 = 2;
+229        		else if v190 in (4,5) then wealth_index_c3 = 3;
+230        		else wealth_index_c3 = .;
+231        		label wealth_index_c3 = 'Household wealth index (3 categories)';
+232        
+233        		* Number of ANC visits;
+234        		if m14 = 98 or missing(m14) then anc_visits_c4 = .;
+235        		else if m14 = 0 then anc_visits_c4 = 0;
+236                else if m14 in (1,2,3) then anc_visits_c4 = 1;
+237        		else if m14 in (4,5,6,7) then anc_visits_c4 = 2;
+238        		else if m14 > 7 then anc_visits_c4 = 3;
+239        		else anc_visits_c4 = .;
+240        		label anc_visits_c4 = 'Number of antenatal visits (4-categories)';
+241        
+242        		* Tetanus_2_plus;
+243        		if missing(m1) or m1 = 8 then tetanus_2_plus = .;
+244        		else if m1 >= 2 then tetanus_2_plus = 1;
+245        		else if m1 <2 then tetanus_2_plus = 0;
+246        		label tetanus_2_plus = 'at least two tetanus toxoid injections during pregnancy (>=2)';
+247        
+248        		* Anc_1st_trimester;
+249        		if missing(m13) or m13 = 98 then anc_1st_trimester = .;
+250        		else if m13 <=2 then anc_1st_trimester = 1;
+251        		else anc_1st_trimester = 0;
+252        
+253        		* skilled prenatal care;
+254        		if missing(m57e) or missing(m57m) or missing(m57n) or missing(m57o) or missing(m57p) or missing(m57x) then
+6                                                          The SAS System                              10:33 Sunday, August 24, 2025
+
+254      ! skilled_prenatal = .;
+255        		else if m57e = 1 or m57m = 1 or m57n = 1 or m57o = 1 or m57p = 1 then skilled_prenatal = 2;
+256        		else skilled_prenatal = 0;
+257        		label skilled_prenatal = "Mother saw at least one skilled provider during antenatal care.";
+258        
+259        		* anc_quality score;
+260        		if nmiss(anc_visits_c4, tetanus_2_plus, anc_1st_trimester, m42c, m42d, m42e, skilled_prenatal) > 2 then
+260      ! anc_quality_score = .;
+261        		else anc_quality_score = anc_visits_c4 + tetanus_2_plus + anc_1st_trimester + m42c + m42d + m42e + skilled_prenatal;
+262        		label anc_quality_score = "Antenatal Care Quality Score";
+263        
+264        		* anc_quality_score_c2;
+265        		if missing(anc_quality_score) then anc_quality_score_c2 = .;
+266        		else if anc_quality_score <=7 then anc_quality_score_c2 = 0;
+267        		else if anc_quality_score in (8,9,10) then anc_quality_score_c2 = 1;
+268        		label anc_quality_score_c2 = "Adequate Antenatal Care Quality Score (2 categories)";
+269        
+270        		if time_months < 60;
+271        run;
+
+WARNING: The variable SMUNIP in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable ssubreg in the DROP, KEEP, or RENAME list has never been referenced.
+WARNING: The variable sdepto in the DROP, KEEP, or RENAME list has never been referenced.
+NOTE: Missing values were generated as a result of performing an operation on missing values.
+      Each place is given by: (Number of times) at (Line):(Column).
+      1050 at 261:42   14 at 261:59     
+NOTE: There were 11759 observations read from the data set RAW.COKR72FL.
+NOTE: The data set DERV.LHS000101_24AUG25 has 11649 observations and 34 variables.
+NOTE: DATA statement used (Total process time):
+      real time           7.48 seconds
+      cpu time            0.00 seconds
+      
+
+272        
+273        proc sort data = &db_out.; by womenid; run;
+
+NOTE: There were 11649 observations read from the data set DERV.LHS000101_24AUG25.
+NOTE: The data set DERV.LHS000101_24AUG25 has 11649 observations and 34 variables.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.33 seconds
+      cpu time            0.00 seconds
+      
+
+274        
+275        ods rtf file = "&homepath./scripts/&job./&job._contents_&sysdate..rtf";
+NOTE: Writing RTF Body file: J:\HCHS\STATISTICS\GRAS\QAngarita\LHS\LHS0001/scripts/LHS000101/LHS000101_contents_24AUG25.rtf
+276        proc contents data = &db_out.;
+277        run;
+
+NOTE: PROCEDURE CONTENTS used (Total process time):
+      real time           0.22 seconds
+      cpu time            0.03 seconds
+      
+NOTE: The PROCEDURE CONTENTS printed pages 1-2.
+
+278        proc sql;
+279        	title 'Number of women ids in the dataset';
+280        	select count(distinct(womenid)) as n
+7                                                          The SAS System                              10:33 Sunday, August 24, 2025
+
+281        	from &db_out.;
+282        quit;
+NOTE: The PROCEDURE SQL printed page 3.
+NOTE: PROCEDURE SQL used (Total process time):
+      real time           0.19 seconds
+      cpu time            0.00 seconds
+      
+
+283        ods rtf close;
+284        
+285        proc printto; run;
+

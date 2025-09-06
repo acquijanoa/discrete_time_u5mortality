@@ -1,0 +1,130 @@
+                                                           The SAS System                          11:45 Sunday, August 24, 2025   1
+
+                                                          The MI Procedure
+
+                                                         Model Information
+
+                                    Data Set                             DERV.LHS000101_24AUG25 
+                                    Method                               FCS                    
+                                    Number of Imputations                10                     
+                                    Number of Burn-in Iterations         20                     
+                                    Seed for random number generator     220825                 
+
+
+                                                      FCS Model Specification
+ 
+  Method                   Imputed Variables
+
+  Regression               is_alive preterm_birth child_sex urban birth_weight weight                                             
+  Logistic Regression      anc_quality_score_c2 any_substance_use                                                                 
+  Discriminant Function    time_months_c6 meduc_c3 mage_birth_c3 wealth_index_c3 region ethnicity_c3 birth_order_spacing_c5 strata
+
+
+ 
+                                                       Missing Data Patterns
+ 
+                      time_                        mage_   wealth_
+                      months_            preterm_  birth_  index_                             anc_quality_  ethnicity_  birth_
+     Group  is_alive  c6       meduc_c3  birth     c3      c3       child_sex  urban  region  score_c2      c3          weight
+
+         1  X         X        X         X         X       X        X          X      X       X             X           X     
+         2  X         X        X         X         X       X        X          X      X       X             X           X     
+         3  X         X        X         X         X       X        X          X      X       X             X           .     
+         4  X         X        X         X         X       X        X          X      X       X             X           .     
+
+                                                       Missing Data Patterns
+ 
+                                                    birth_
+                                                    order_
+                                  any_substance_    spacing_
+                           Group  use               c5          weight    strata        Freq     Percent
+
+                               1  X                 X           X         X             7007       60.15
+                               2  X                 .           X         X               17        0.15
+                               3  X                 X           X         X             1465       12.58
+                               4  X                 .           X         X                3        0.03
+
+ 
+                                                       Missing Data Patterns
+ 
+                       -----------------------------------------Group Means----------------------------------------
+                                           preterm_
+                Group      is_alive           birth       child_sex           urban    birth_weight          weight
+
+                    1      0.992008        0.127872        0.491937        0.751106     3193.590980        0.984887
+                    2      0.941176        0.647059        0.647059        0.764706     2308.529412        1.013468
+                    3      0.972014        0.125597        0.494881        0.518089               .        0.745512
+                    4      1.000000        0.333333        0.666667        0.666667               .        1.081270
+                                                           The SAS System                          11:45 Sunday, August 24, 2025   2
+
+                                                          The MI Procedure
+
+ 
+                                                       Missing Data Patterns
+ 
+                      time_                        mage_   wealth_
+                      months_            preterm_  birth_  index_                             anc_quality_  ethnicity_  birth_
+     Group  is_alive  c6       meduc_c3  birth     c3      c3       child_sex  urban  region  score_c2      c3          weight
+
+         5  X         X        X         X         X       X        X          X      X       .             X           X     
+         6  X         X        X         X         X       X        X          X      X       .             X           X     
+         7  X         X        X         X         X       X        X          X      X       .             X           X     
+         8  X         X        X         X         X       X        X          X      X       .             X           .     
+         9  X         X        X         X         X       X        X          X      X       .             X           .     
+        10  X         X        X         X         X       X        X          X      X       .             X           .     
+        11  X         X        X         X         X       X        X          X      X       .             X           .     
+
+                                                       Missing Data Patterns
+ 
+                                                    birth_
+                                                    order_
+                                  any_substance_    spacing_
+                           Group  use               c5          weight    strata        Freq     Percent
+
+                               5  X                 X           X         X              880        7.55
+                               6  X                 .           X         X                2        0.02
+                               7  .                 X           X         X             1075        9.23
+                               8  X                 X           X         X              521        4.47
+                               9  X                 .           X         X                1        0.01
+                              10  .                 X           X         X              677        5.81
+                              11  .                 .           X         X                1        0.01
+
+ 
+                                                       Missing Data Patterns
+ 
+                       -----------------------------------------Group Means----------------------------------------
+                                           preterm_
+                Group      is_alive           birth       child_sex           urban    birth_weight          weight
+
+                    5      0.994318        0.118182        0.481818        0.747727     3203.739773        1.018927
+                    6      1.000000        0.500000        0.500000        0.500000     1700.000000        2.107593
+                    7      0.962791        0.149767        0.483721        0.694884     3141.351628        0.974647
+                    8      0.976967        0.101727        0.525912        0.426104               .        0.739004
+                    9      1.000000        1.000000               0        1.000000               .        0.485533
+                   10      0.940916        0.140325        0.478582        0.342688               .        0.681896
+                   11      1.000000        1.000000        1.000000        1.000000               .        0.048251
+
+
+                                               Variance Information (10 Imputations)
+ 
+                                                                                         Relative       Fraction
+                               -----------------Variance-----------------                Increase        Missing       Relative
+     Variable                       Between         Within          Total       DF    in Variance    Information     Efficiency
+
+     birth_weight                  8.075701      31.684976      40.568248   183.91       0.280362       0.227162       0.977788
+                                                           The SAS System                          11:45 Sunday, August 24, 2025   3
+
+                                                          The MI Procedure
+
+                                                Parameter Estimates (10 Imputations)
+ 
+Variable                         Mean      Std Error    95% Confidence Limits        DF        Minimum        Maximum            Mu0
+
+birth_weight              3182.706214       6.369321     3170.140     3195.273   183.91    3179.469108    3188.519571              0
+
+                                               Parameter Estimates (10 Imputations)
+ 
+                                                                    t for H0:
+                                           Variable                  Mean=Mu0   Pr > |t|
+
+                                           birth_weight                499.69     <.0001

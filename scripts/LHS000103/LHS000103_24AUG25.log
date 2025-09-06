@@ -1,0 +1,74 @@
+NOTE: PROCEDURE PRINTTO used (Total process time):
+      real time           0.02 seconds
+      cpu time            0.00 seconds
+      
+
+6          
+7          /*
+8          	Program name: LHS000103.sas	
+9          
+10         	Description: convert wide format imputed data
+11         				to time-months format data
+12         
+13         	Version: SAS 9.4
+14         
+15         	Input:  ../data/derived/lhs000102_24aug25.sas7bdat
+16         
+17         	Output: ../data/derived/lhs000103_24aug25.sas7bdat
+18         			../scripts/lhs000104/lhs000104_contents_24aug25.rtf
+19         
+20         */
+21         libname raw "&homepath/data/raw" ACCESS=READONLY;
+NOTE: Libref RAW was successfully assigned as follows: 
+      Engine:        V9 
+      Physical Name: J:\HCHS\STATISTICS\GRAS\QAngarita\LHS\LHS0001\data\raw
+22         libname derv "&homepath/data/derived";
+NOTE: Libref DERV was successfully assigned as follows: 
+      Engine:        V9 
+      Physical Name: J:\HCHS\STATISTICS\GRAS\QAngarita\LHS\LHS0001\data\derived
+23         run;
+2                                                          The SAS System                              11:54 Sunday, August 24, 2025
+
+24         
+25         * define macro variables;
+26         %let db_out = derv.&job._&sysdate.;
+27         %let db_in = derv.lhs000102_24aug25;
+28         
+29         * process dataset;
+30         data &db_out.(label = 'DHS 2015 - Derived Variables using child recode data (Person-month format)');
+31         	set &db_in.;
+32         			
+33         	* Creating the exposure by AGE;
+34         		do age = 1 to ceil(time_months_c6);
+35         
+36         		    if age = ceil(time_months_c6) and age_death = time_months then died = 1;
+37         		    else died = 0;
+38         		    label died = "event indicator (1=death at current age, 0=alive)";
+39         
+40         		    output;
+41         		end;
+42         run;
+
+NOTE: There were 116490 observations read from the data set DERV.LHS000102_24AUG25.
+NOTE: The data set DERV.LHS000103_24AUG25 has 548000 observations and 37 variables.
+NOTE: DATA statement used (Total process time):
+      real time           7.85 seconds
+      cpu time            0.04 seconds
+      
+
+43         
+44         ods rtf file = "&homepath./scripts/&job./&job._contents_&sysdate..rtf";
+NOTE: Writing RTF Body file: J:\HCHS\STATISTICS\GRAS\QAngarita\LHS\LHS0001/scripts/LHS000103/LHS000103_contents_24AUG25.rtf
+45         proc contents data = &db_out.;
+46         run;
+
+NOTE: PROCEDURE CONTENTS used (Total process time):
+      real time           0.04 seconds
+      cpu time            0.04 seconds
+      
+NOTE: The PROCEDURE CONTENTS printed pages 1-2.
+
+47         ods rtf close;
+48         
+49         proc printto; run;
+

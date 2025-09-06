@@ -1,0 +1,347 @@
+NOTE: PROCEDURE PRINTTO used (Total process time):
+      real time           0.08 seconds
+      cpu time            0.01 seconds
+      
+
+6          
+7          /*
+8          
+9          	Program name: LHS000104.sas	
+10         
+11         	Description: 	Fits the cloglog model and print the rtf report (Table 3)
+12         
+13         	Author: 		Alvaro Quijano
+14         
+15         	SAS version: 	9.4
+16         
+17         	Creation date: 	28jul25
+18         
+19         	History: 		31jul25: Add the code to print rtf report
+20         					06aug25: Update input dataset from *_30jul25 to *06aug25
+21         							 Use birth_weight_c3 instead of *_c4
+22         							 Add preceding_birth_interval_lt36 to the model
+2                                                          The SAS System                            10:49 Thursday, August 14, 2025
+
+23         							 Drop preceding_birth_interval_c3 from the model
+24         							 Renamed to Table 3
+25         						 		
+26         	Input: 	&homepath./data/derived/lhs000103_14aug25.sas7bdat	
+27         
+28         	Output: &homepath./output/lhs000104_T3_14aug25.rtf
+29         			&homepath./data/derived/lhs000104_14aug25.sas7bdat
+30         
+31         */
+32         options nonumber nodate;
+33         
+34         * Import libraries;
+35         libname raw "&homepath/data/raw" ACCESS=READONLY;
+NOTE: Libref RAW was successfully assigned as follows: 
+      Engine:        V9 
+      Physical Name: J:\HCHS\STATISTICS\GRAS\QAngarita\LHS\LHS0001\data\raw
+36         libname derv "&homepath/data/derived";
+NOTE: Libref DERV was successfully assigned as follows: 
+      Engine:        V9 
+      Physical Name: J:\HCHS\STATISTICS\GRAS\QAngarita\LHS\LHS0001\data\derived
+37         run;
+38         
+39         * Include needed files;
+40         %include "&homepath./scripts/LHS000190/lhs000190.sas";
+NOTE: Format ETHNICITY_C3_FMT has been output.
+NOTE: Format MEDUC_C3_FMT has been output.
+NOTE: Format MEDUC_C2_FMT has been output.
+NOTE: Format FLOOR_MAT_C4_FMT has been output.
+NOTE: Format CHILD_SEX_FMT has been output.
+NOTE: Format HH_HEAD_C4_FMT has been output.
+NOTE: Format FUEL_COOKING_C3_FMT has been output.
+NOTE: Format MOM_OCCUPATION_C3_FMT has been output.
+NOTE: Format PRECEDING_BIRTH_INTERVAL_C4_FMT has been output.
+NOTE: Format PRECEDING_BIRTH_INTERVAL_C3_FMT has been output.
+NOTE: Format BIRTH_WEIGHT_C4_FMT has been output.
+NOTE: Format BIRTH_WEIGHT_C3_FMT has been output.
+NOTE: Format AGE_MONTH_FMT has been output.
+NOTE: Format WEALTH_INDEX_FMT has been output.
+NOTE: Format WEALTH_INDEX_C3_FMT has been output.
+NOTE: Format MAGE_BIRTH_FMT has been output.
+NOTE: Format MAGE_BIRTH_C3_FMT has been output.
+NOTE: Format URBAN_FMT has been output.
+NOTE: Format ANC_QUALITY_SCORE_C2_FMT has been output.
+NOTE: Format BIRTH_ORDER_C3_FMT has been output.
+NOTE: Format BIRTH_ORDER_SPACING_C5_FMT has been output.
+NOTE: Format ANY_SUBSTANCE_USE_FMT has been output.
+NOTE: Format PRETERM_BIRTH_FMT has been output.
+NOTE: Format REFNUM has been output.
+NOTE: The NEGPAREN (in)format was specified on the right-hand side of an equal sign, but without a length specification. PROC 
+      FORMAT will assume a default length of at least 40 for the format being generated. If this is an insufficient width, you can 
+      rerun PROC FORMAT with an explicit width for the NEGPAREN (in)format, or provide a sufficient DEFAULT= option.
+NOTE: Format PAREN has been output.
+NOTE: Format PV has been output.
+
+NOTE: PROCEDURE FORMAT used (Total process time):
+      real time           0.02 seconds
+      cpu time            0.01 seconds
+      
+                                                           The SAS System
+
+
+182        %include "&homepath./scripts/LHS000191/lhs00019103.sas";
+248        
+249        * define macro variables;
+250        %let db_out = derv.&job._&sysdate.;
+251        %let db_in = derv.LHS000103_14aug25;
+252        
+253        ods escapechar '^';
+254        
+255        * Count number of ids;
+256        proc sql noprint;
+257        	select count(distinct(cats(womenid,birthid))) into:n_births
+258        	from &db_in;
+259        quit;
+NOTE: PROCEDURE SQL used (Total process time):
+      real time           2.04 seconds
+      cpu time            0.01 seconds
+      
+
+260        
+261        * Fit the logistic model;
+262        proc surveylogistic data = &db_in;
+263        	by _imputation_;
+264        	cluster psu;
+265        	strata strata;
+266        	weight weight;
+267        	class age(Ref="1") meduc_c3(Ref="1") wealth_index_c3(ref='3') mage_birth_c3(ref="1") preterm_birth(ref='0')
+267      ! birth_order_spacing_c5(ref='0')
+268        		  birth_weight_c3(ref="2") child_sex(ref='1') urban ethnicity_c3(ref='3') anc_quality_score_c2(ref='1')
+268      ! any_substance_use(ref='1') / param=ref;
+269        	model died(event='1') = age child_sex birth_weight_c3 preterm_birth meduc_c3 ethnicity_c3  wealth_index_c3
+270        								 urban anc_quality_score_c2 birth_order_spacing_c5 mage_birth_c3 any_substance_use / link = cloglog;
+271        	ods output  ParameterEstimates = db_estimates0;
+272        run;
+
+NOTE: The BY statement provides completely separate analyses of the BY groups.  It does not provide a statistically valid 
+      subpopulation or domain analysis, where the total number of units in the subpopulation is not known with certainty. If you 
+      want a domain analysis, you should include the DOMAIN variables in a DOMAIN statement.
+NOTE: PROC SURVEYLOGISTIC is modeling the probability that died=1.
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+NOTE: The above message was for the following BY group:
+      Imputation Number=1
+NOTE: PROC SURVEYLOGISTIC is modeling the probability that died=1.
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+NOTE: The above message was for the following BY group:
+      Imputation Number=2
+NOTE: PROC SURVEYLOGISTIC is modeling the probability that died=1.
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+NOTE: The above message was for the following BY group:
+      Imputation Number=3
+NOTE: PROC SURVEYLOGISTIC is modeling the probability that died=1.
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+NOTE: The above message was for the following BY group:
+      Imputation Number=4
+NOTE: PROC SURVEYLOGISTIC is modeling the probability that died=1.
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+NOTE: The above message was for the following BY group:
+      Imputation Number=5
+                                                           The SAS System
+
+NOTE: PROC SURVEYLOGISTIC is modeling the probability that died=1.
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+NOTE: The above message was for the following BY group:
+      Imputation Number=6
+NOTE: PROC SURVEYLOGISTIC is modeling the probability that died=1.
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+NOTE: The above message was for the following BY group:
+      Imputation Number=7
+NOTE: PROC SURVEYLOGISTIC is modeling the probability that died=1.
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+NOTE: The above message was for the following BY group:
+      Imputation Number=8
+NOTE: PROC SURVEYLOGISTIC is modeling the probability that died=1.
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+NOTE: The above message was for the following BY group:
+      Imputation Number=9
+NOTE: PROC SURVEYLOGISTIC is modeling the probability that died=1.
+NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+NOTE: The above message was for the following BY group:
+      Imputation Number=10
+NOTE: The data set WORK.DB_ESTIMATES0 has 250 observations and 10 variables.
+NOTE: The PROCEDURE SURVEYLOGISTIC printed pages 1-40.
+NOTE: PROCEDURE SURVEYLOGISTIC used (Total process time):
+      real time           19.60 seconds
+      cpu time            15.50 seconds
+      
+
+273        
+274        * Arrange the dataset with the beta estimates;
+275        data db_estimates;
+276          length Parameter $82;
+277          set db_estimates0;
+278        
+279           if missing(ClassVal0) then
+280            Parameter = Variable;
+281          else
+282            Parameter = catx('_', Variable, ClassVal0);
+283        
+284          keep _imputation_ Parameter Estimate StdErr DF;
+285        run;
+
+NOTE: There were 250 observations read from the data set WORK.DB_ESTIMATES0.
+NOTE: The data set WORK.DB_ESTIMATES has 250 observations and 5 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.02 seconds
+      cpu time            0.00 seconds
+      
+
+286        
+287        * Obtain the list of effects to use in MIANALYZE;
+288        proc sql noprint;
+289        	select distinct Parameter into:var_list separated by ' '
+290        	from db_estimates
+291        	;
+292        quit;
+NOTE: PROCEDURE SQL used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+                                                           The SAS System
+
+      
+
+293        
+294        * Combine the estimates;
+295        proc mianalyze parms=db_estimates;
+296        	modeleffects &var_list;
+297        	ods output ParameterEstimates = db_estimates_pooled_mi;
+298        run;
+
+NOTE: The data set WORK.DB_ESTIMATES_POOLED_MI has 25 observations and 12 variables.
+NOTE: The PROCEDURE MIANALYZE printed pages 41-43.
+NOTE: PROCEDURE MIANALYZE used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.00 seconds
+      
+
+299        
+300        * Estimates;
+301        data db_estimates_pooled;
+302        	set db_estimates_pooled_mi;
+303        
+304        	* position;
+305        	pos = findc(Parm, '_', 'b');
+306        
+307        	if anydigit(substr(Parm, pos+1)) then do;
+308        		ClassVal1 = substr(Parm, pos+1);
+309        		Variable = substr(Parm, 1, pos-1);
+310        	end;
+311        	else do;
+312        		ClassVal1 = '';
+313        		Variable = Parm;	
+314        	end;
+315        
+316        	* keep variables;
+317        	keep Variable ClassVal1 Estimate StdErr Probt;
+318        run;
+
+NOTE: There were 25 observations read from the data set WORK.DB_ESTIMATES_POOLED_MI.
+NOTE: The data set WORK.DB_ESTIMATES_POOLED has 25 observations and 5 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+319        
+320        * Insert reference values;
+321        proc sql noprint;
+322        	insert into db_estimates_pooled (Variable,ClassVal1,Estimate)
+323        	values ('wealth_index_c3','3',97)
+324        	values ('mage_birth_c3','1',97)
+325        	values ('birth_weight_c3','2',97)
+326        	values ('child_sex','1',97)
+327        	values ('urban','1',97)
+328        	values ('birth_order_spacing_','0',97)
+329        	values ('ethnicity_c3','3',97)
+330        	values ('anc_quality_score_c2','1',97)
+331        	values ('any_substance_use','1',97)
+332        	values ('age','1',97)
+                                                           The SAS System
+
+333        	values ('meduc_c3','1',97)
+334        	values ('preterm_birth','0',97);
+NOTE: 12 rows were inserted into WORK.DB_ESTIMATES_POOLED.
+
+335        quit;
+NOTE: PROCEDURE SQL used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+336        
+337        * Insert labels to use in the report;
+338        data &db_out.;
+339        	set db_estimates_pooled;
+340        	keep order label response estimate std pv;
+341        
+342        	response = "Log-Hazard ratio";
+343        	%labels;
+344        run;
+
+NOTE: Missing values were generated as a result of performing an operation on missing values.
+      Each place is given by: (Number of times) at (Line):(Column).
+      12 at 343:71   
+NOTE: There were 37 observations read from the data set WORK.DB_ESTIMATES_POOLED.
+NOTE: The data set DERV.LHS000104_14AUG25 has 37 observations and 6 variables.
+NOTE: DATA statement used (Total process time):
+      real time           12.09 seconds
+      cpu time            0.01 seconds
+      
+
+345        
+346        * Print RTF report;
+347        libname hchstyle 'J:\hchs\sc\styledef\sty904';
+NOTE: Libref HCHSTYLE was successfully assigned as follows: 
+      Engine:        V9 
+      Physical Name: J:\hchs\sc\styledef\sty904
+348        ods path sashelp.tmplmst(read) hchstyle.hchs_stp(read);
+349        ods listing close;
+350        
+351        ods rtf file = "&homepath./scripts/&job./&job._T3_&sysdate..rtf" style=manuscrt bodytitle;
+NOTE: Writing RTF Body file: J:\HCHS\STATISTICS\GRAS\QAngarita\LHS\LHS0001/scripts/LHS000104/LHS000104_T3_14AUG25.rtf
+352        %let fs = 11pt;
+353        %let fs_body = 11pt;
+354        %let fs_titles = 11pt;
+355        %let lft_mgn = 1 in;
+356        %let rgt_mgn = 1 in;
+357        proc report data = &db_out.;
+358        	title j=center height=&fs font='times roman' bold "Table 3. Discrete-Time Survival Estimates of the Hazard of Mortality
+358      ! among Children under Five in Colombia, Demography and Health Survey 2015 (N=%qtrim(&n_births))";
+359        	footnote1 J=LEFT HEIGHT=9.5pt FONT='times roman' "^S={leftmargin=&lft_mgn rightmargin=&rgt_mgn} Note(s): Estimates are
+359      ! weighted using sampling weights and account for complex survey design." ;
+360        	footnote2 J=LEFT HEIGHT=9.5pt FONT='times roman' "^S={leftmargin=1.6in rightmargin=&rgt_mgn}Log-Hazard Ratio estimates
+360      ! are pooled across 10 imputed datasets following Rubin rules and standard errors incorporate both within and
+360      ! between-imputation variability." ;
+361        	footnote3 J=LEFT HEIGHT=10pt FONT='times roman' "{\line \line Job &job run using DHS 2015 data on %sysfunc(today(),
+361      ! date9.) at%sysfunc(time(), timeampm.) }";
+362        	columns order label response,(estimate std pv);
+363        	define order / order group noprint order = internal;
+                                                           The SAS System
+
+364        	define label / display group ' ' style(header)=[just=left] style=[cellwidth=3.5in];
+365        	define estimate / analysis 'Estimate' style=[vjust=bottom];
+366        	define response / across ' ' ;
+367        	define std / analysis '(SE)' style=[vjust=bottom];
+368        	define pv / analysis ' ' group
+369        					style=[vjust=bottom just=left]
+370        					style(header)=[cellpadding = 0in cellheight=0in cellspacing=0in];
+371        	format pv pv. std paren. estimate refnum. ;
+372        	compute after _page_ / style = [just=left];
+373        		line "* p <=.10, ** p <=.05, *** p <=.01 ";
+374        	endcomp;
+375        run;
+
+NOTE: PROCEDURE REPORT used (Total process time):
+      real time           0.06 seconds
+      cpu time            0.03 seconds
+      
+NOTE: There were 37 observations read from the data set DERV.LHS000104_14AUG25.
+
+376        ods rtf close;
+377        
+378        proc printto; run;
+
