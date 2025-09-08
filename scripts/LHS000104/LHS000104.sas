@@ -1,4 +1,4 @@
-%let homepath = J:\HCHS\STATISTICS\GRAS\QAngarita\LHS\LHS0001;
+%let homepath = <INSERT THE PATH TO THE ROOT FOLDER>;
 %let job = LHS000104;
 proc printto log = "&homepath./scripts/&job./&job._&sysdate..log" 
 			print = "&homepath./scripts/&job./&job._&sysdate..lst" new;
