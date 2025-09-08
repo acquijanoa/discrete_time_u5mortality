@@ -1,5 +1,5 @@
 ## LatinAmerican Health Studies (LHS)
-#### Author: AQ
+#### Author: 
 #### Date: 14may25
 
 ## Project: LHS0001

@@ -4,8 +4,6 @@
 
 	Description: Include the format value for derived variables
 
-	Programmer: Alvaro Quijano
-
 	Creation date: 15may25
 
 */
