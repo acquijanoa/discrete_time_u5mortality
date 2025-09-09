@@ -36,6 +36,10 @@ To run Job 01, download the DHS 2015 child recode file and place it in the root 
 
 - Generate model results and structured reports.
 
+#### Job 05: Hazard ratio
+
+ - Estimate hazard ratios and confidence intervals
+
 #### Job 06: Descriptive Analysis
 
 - Produce descriptive statistics tables for study variables.
